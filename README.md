@@ -2,8 +2,19 @@
 
 This demo is built to show how to add triangles to make a simple flower pattern. Taken originally from wasm repository.
 
+## Running
+
+cargo run
+
+![screenshot](flower-triangle.png)
+
+
+## Result
+
+![screenshot](wasm-triangle.png)
+
 ------------------------------
-<Original README below>
+Original README below:
 
 # Rust+GL+WASM Triangle
 
