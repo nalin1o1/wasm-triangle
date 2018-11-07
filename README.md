@@ -1,3 +1,10 @@
+# Rust + GL Flower from triangles
+
+This demo is built to show how to add triangles to make a simple flower pattern. Taken originally from wasm repository.
+
+------------------------------
+<Original README below>
+
 # Rust+GL+WASM Triangle
 
 This is a simple demo showing how to get WebGL2 working via the Wasm/Emscripten target of Rust. Code is fully adopted from the gl-rs triangle example.
