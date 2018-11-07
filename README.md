@@ -6,12 +6,10 @@ This demo is built to show how to add triangles to make a simple flower pattern.
 
 cargo run
 
+## Result
 ![screenshot](flower-triangle.png)
 
 
-## Result
-
-![screenshot](wasm-triangle.png)
 
 ------------------------------
 Original README below:
