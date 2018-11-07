@@ -25,8 +25,15 @@ use std::ffi::CString;
 pub mod emscripten;
 
 // Vertex data
-static VERTEX_DATA: [GLfloat; 6] = [0.0, 0.5, 0.5, -0.5, -0.5, -0.5];
+static VERTEX_DATA: [GLfloat; 36] = [ 0.1,0.7,0.0,0.0,0.4,0.5,
+0.5,0.4,0.0,0.0,0.5,-0.4,
+0.4,-0.5,0.0,0.0,0.1,-0.7,
+-0.1,-0.7,0.0,0.0,-0.4,-0.5,
+-0.5,-0.4,0.0,0.0,-0.5,0.4,
+-0.4,0.5,0.0,0.0,-0.1,0.7,
+];
 
+static mut iterationcount: f32 = 0.0;
 // Shader sources
 static VS_SRC: &'static str = "#version 300 es
     in vec2 position;
@@ -41,7 +48,7 @@ static FS_SRC: &'static str = "#version 300 es
     out vec4 out_color;
 
     void main() {
-        out_color = vec4(gl_FragCoord.xyz / 300.0, 1.0);
+        out_color = vec4(gl_FragCoord.yxz / 320.0, 1.0);
     }"
 ;
 
@@ -128,6 +135,7 @@ fn main() {
         .with_gl(glutin::GlRequest::Specific(api, version));
     let gl_window = glutin::GlWindow::new(window, context, &events_loop)
         .unwrap();
+    unsafe { gl_window.set_title("Nalin1o1 - 6  triangle Flower")};
 
     // It is essential to make the context current before calling `gl::load_with`.
     unsafe { gl_window.make_current() }.unwrap();
@@ -183,14 +191,22 @@ fn main() {
         println!("Data specified");
     }
 
+    // Events get generated only when mouse moves over th window
     let draw_iter = || {
+
         unsafe {
+
+            iterationcount = iterationcount + 0.001;
+            if iterationcount > 0.9
+            {
+                iterationcount = 0.0;
+            }
             // Clear the screen to black
-            gl::ClearColor(0.3, 0.3, 0.3, 1.0);
+            gl::ClearColor(iterationcount, 0.3, 0.3, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT);
 
-            // Draw a triangle from the 3 vertices
-            gl::DrawArrays(gl::TRIANGLES, 0, 3);
+            // Draw 6 triangles from the 18 vertices
+            gl::DrawArrays(gl::TRIANGLES, 0, 18);
         }
 
         gl_window.swap_buffers().unwrap();
