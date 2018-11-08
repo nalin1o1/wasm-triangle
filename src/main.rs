@@ -20,35 +20,44 @@ use std::mem;
 use std::ptr;
 use std::str;
 use std::ffi::CString;
+use std::os::raw::c_void;
 
 #[cfg(target_os = "emscripten")]
 pub mod emscripten;
 
-// Vertex data
-static VERTEX_DATA: [GLfloat; 36] = [ 0.1,0.7,0.0,0.0,0.4,0.5,
-0.5,0.4,0.0,0.0,0.5,-0.4,
-0.4,-0.5,0.0,0.0,0.1,-0.7,
--0.1,-0.7,0.0,0.0,-0.4,-0.5,
--0.5,-0.4,0.0,0.0,-0.5,0.4,
--0.4,0.5,0.0,0.0,-0.1,0.7,
+// Vertex data (2*3*6 + 3*3*6)
+static VERTEX_DATA: [GLfloat; 90] = [ 
+    0.1,0.7,   0.1,0.2,0.3,   0.0,0.0,   0.1,0.2,0.3,  0.4,0.5,   0.1,0.2,0.3,
+    0.5,0.4,   0.3,0.2,0.3,  0.0,0.0,   0.3,0.2,0.3,   0.5,-0.4,     0.3,0.2,0.3,
+    0.4,-0.5,  0.4,0.2,0.3,   0.0,0.0, 0.4,0.2,0.3,   0.1,-0.7,     0.4,0.2,0.3,
+    -0.1,-0.7,  0.5,0.2,0.3,  0.0,0.0,  0.5,0.2,0.3,  -0.4,-0.5,    0.5,0.2,0.3,
+    -0.5,-0.4,   0.6,0.2,0.3,  0.0,0.0,  0.6,0.2,0.3, -0.5,0.4,   0.6,0.2,0.3,
+    -0.4,0.5,   0.7,0.2,0.3,   0.0,0.0,  0.7,0.2,0.3, -0.1,0.7,     0.7,0.2,0.3,
 ];
 
 static mut iterationcount: f32 = 0.0;
 // Shader sources
 static VS_SRC: &'static str = "#version 300 es
-    in vec2 position;
+    layout (location = 0) in vec2 position;
+    layout (location = 1) in vec3 aColor;
+    out vec3 color;
 
     void main() {
         gl_Position = vec4(position, 0.0, 1.0);
+        color = aColor;
     }"
 ;
-
+//out_color = vec4(gl_FragCoord.yxz / 320.0, 1.0);
+//out_color = vec4(color, 1.0);
 static FS_SRC: &'static str = "#version 300 es
     precision mediump float;
+    in vec3 color;
     out vec4 out_color;
 
     void main() {
-        out_color = vec4(gl_FragCoord.yxz / 320.0, 1.0);
+        
+        out_color = vec4(color, 1.0);
+
     }"
 ;
 
@@ -151,6 +160,7 @@ fn main() {
 
     let mut vao = 0;
     let mut vbo = 0;
+    let mut vbocolor = 0;
 
     println!("Program linked");
 
@@ -176,18 +186,35 @@ fn main() {
         // Use shader program
         gl::UseProgram(program);
 
-        // Specify the layout of the vertex data
+        // Specify the layout of the vertex data - for position
         let pos_attr = gl::GetAttribLocation(program, CString::new("position").unwrap().as_ptr());
+        println!("pos attrib {}", pos_attr);
         gl::EnableVertexAttribArray(pos_attr as GLuint);
         gl::VertexAttribPointer(
             pos_attr as GLuint,
             2,
             gl::FLOAT,
             gl::FALSE as GLboolean,
-            0,
+            5 * mem::size_of::<GLfloat>() as GLsizei,
             ptr::null(),
         );
 
+        // VBO for color
+        
+        let col_attr = gl::GetAttribLocation(program, CString::new("aColor").unwrap().as_ptr());
+        println!("color attrib {}", col_attr);
+        gl::EnableVertexAttribArray(col_attr  as GLuint);
+        gl::VertexAttribPointer(
+            col_attr as GLuint,
+            3,
+            gl::FLOAT,
+            gl::FALSE as GLboolean,
+             5 * mem::size_of::<GLfloat>() as GLsizei,
+            (2 * mem::size_of::<GLfloat>()) as *const c_void
+        );
+        
+        gl::BindBuffer(gl::ARRAY_BUFFER, 0);
+        gl::BindVertexArray(0);
         println!("Data specified");
     }
 
@@ -206,6 +233,7 @@ fn main() {
             gl::Clear(gl::COLOR_BUFFER_BIT);
 
             // Draw 6 triangles from the 18 vertices
+            gl::BindVertexArray(vao);
             gl::DrawArrays(gl::TRIANGLES, 0, 18);
         }
 
